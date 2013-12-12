@@ -1,0 +1,15 @@
+Scaler allows you to execute scale arbitary code across multiple ec2 instances.
+
+Steps:
+- gem install scaler
+- cd into directory with your <file name>.<extension>
+- scaler ready
+  - this will build config folder which is required by cap < 3.1
+  - also add a default config file which needs to be overwritten with your values
+  - Support for env variables overwriting is coming soon
+- scaler scale
+<Scaler ID> provided
+
+- scaler destroy -i <scaler id>
+  -This will download the logs/output from all slaves to the logs dir
+  -Destroy the complete cluster including any dependencies.
