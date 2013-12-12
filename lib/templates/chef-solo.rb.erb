@@ -1,0 +1,5 @@
+<% Scaler::Settings.chef.each do |k,v| %>
+  <% if v && k != "json" %>
+    <%="#{k} #{v}"%>
+  <% end%>
+<% end %>

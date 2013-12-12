@@ -1,0 +1,35 @@
+def job(pcount, tcount)
+  require 'beaneater'
+  log_location = "<%=Scaler::Settings.job.file_path%>/logs"
+  @beanstalk = Beaneater::Pool.new(['<%= Scaler::Settings.cluster.master_url %>:11300'])
+  @beanstalk.jobs.register("default") do |job|
+    cmd = ""
+    cmd += "<%= Scaler::Settings.job.interpreter %> "
+    cmd += '<%= "#{Scaler::Settings.job.file_path}#{Scaler::Settings.job.file}"%> '
+    cmd += "<%=Scaler::Settings.cluster.master_url%> #{job.body} "
+    cmd += "1>> #{log_location}/#{pcount}_#{tcount}_out "
+    cmd += "2>> #{log_location}/#{pcount}_#{tcount}_err "
+    `#{cmd}`
+  end
+  @beanstalk.jobs.process!
+end
+
+def create_threads(pcount, count= <%=Scaler::Settings.cluster.thread_count%>)
+  (1..count).each do |tcount|
+    thread = Thread.new do
+      job(pcount, tcount)
+    end
+    thread.join
+  end
+end
+
+def create_processes(count=<%=Scaler::Settings.cluster.process_count%>)
+  (1..count).each do |pcount|
+    process = Process.fork do
+      create_threads(pcount)
+    end
+  end
+  Process.waitall
+end
+
+create_processes
