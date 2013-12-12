@@ -1,0 +1,14 @@
+namespace :master do
+  desc "start beanstalkd"
+  task :start_beanstalkd do
+    on roles(:master) do |host|
+      execute "killall beanstalkd || echo 1"
+      execute "(nohup beanstalkd -p 11300 >/dev/null 2>&1 &) && sleep 3"
+    end
+  end
+
+  desc "Default master task"
+  task default: [:start_beanstalkd] do
+  end
+end
+after 'deploy:finished', 'master:default'

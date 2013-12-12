@@ -1,0 +1,19 @@
+namespace :slave do
+  desc "gzip remote logs"
+  task :gzip_logs do
+    on roles(:slave) do
+      remote_location = "#{current_path}/logs.tar.gz"
+      execute :tar, "-zcf", remote_location, "-C #{current_path}/logs ."
+    end
+  end
+
+  desc "download logs to current directory"
+  task :download => [:gzip_logs] do
+    on roles(:slave) do |host|
+      FileUtils.mkdir_p("logs")
+      remote_location = "#{current_path}/logs.tar.gz"
+      local_location = "#{File.expand_path(".")}/logs/#{host}.tar.gz"
+      download! remote_location, local_location
+    end
+  end
+end

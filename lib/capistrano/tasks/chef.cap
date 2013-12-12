@@ -1,0 +1,50 @@
+file "#{Scaler::Settings.internal.local_tmp_dir}/cookbooks.tar.gz" do |t|
+  command = "tar -cvzf #{t.name}"
+  command += " -C #{Scaler.relative_path('cookbooks/')} ."
+  Scaler::Settings.chef.cookbook_path.each do |path|
+    command += " -C #{File.expand_path(path)} ."
+  end
+  sh command
+end
+
+namespace :chef_solo do
+  desc "Package and upload the cookbooks"
+  task :upload_cookbooks => ["#{Scaler::Settings.internal.local_tmp_dir}/cookbooks.tar.gz"] do |t|
+    tarball = t.prerequisites.first
+    on roles(:all) do
+      execute :mkdir, '-p', "#{Scaler::Settings.internal.remote_tmp_dir}/chef-solo/lib/cookbooks"
+      upload!(tarball, "#{Scaler::Settings.internal.remote_tmp_dir}/")
+      execute :tar, '-xzf', "#{Scaler::Settings.internal.remote_tmp_dir}/cookbooks.tar.gz", "-C", "#{Scaler::Settings.internal.remote_tmp_dir}/chef-solo/lib/cookbooks"
+    end
+  end
+
+  desc "Uploads solo.rb file"
+  task :upload_solo do
+    on roles(:all) do |host|
+      path = Scaler::Settings.chef.cookbook_path
+      Scaler::Settings.chef.cookbook_path = [Scaler::Settings.internal.remote_tmp_dir+"/chef-solo/lib/cookbooks"]
+      chef_solo_path = Scaler.relative_path('templates/chef-solo.rb.erb')
+      chef_solo = ERB.new(File.new(chef_solo_path).read).result(binding)
+      upload! StringIO.new(chef_solo), "#{Scaler::Settings.internal.remote_tmp_dir}/chef-solo/chef-solo.rb"
+      Scaler::Settings.chef.cookbook_path = path
+    end
+  end
+
+  desc "Uploads attribute file"
+  task :upload_attributes do
+    on roles(:all) do
+      chef_json_path = Scaler.relative_path('templates/node.json.erb')
+      chef_json = ERB.new(File.new(chef_json_path).read).result(binding)
+      upload! StringIO.new(chef_json), "#{Scaler::Settings.internal.remote_tmp_dir}/chef-solo/node.json"
+    end
+  end
+
+  desc "Upload cookbooks and configuration and execute chef-solo."
+  task default: [:upload_cookbooks,:upload_solo, :upload_attributes] do
+    on roles(:all) do |host|
+      execute :sudo, 'chef-solo', '-c', "#{Scaler::Settings.internal.remote_tmp_dir}/chef-solo/chef-solo.rb", '--log_level', 'info'
+    end
+  end
+end
+
+after 'bootstrap:execute', 'chef_solo:default'

@@ -1,0 +1,28 @@
+namespace :bootstrap do
+  desc "create tmp location"
+  task :create do
+    on roles(:all) do
+      execute :mkdir, "-p", Scaler::Settings.internal.remote_tmp_dir
+    end
+  end
+
+  desc "upload bootstrap scripts"
+  task :upload => :create do
+    on roles(:all) do
+      execute upload!(Scaler.relative_path("scripts/bootstrap-ubuntu.sh"), "#{Scaler::Settings.internal.remote_tmp_dir}/bootstrap-ubuntu.sh")
+    end
+  end
+
+  desc "execute bootstrap script"
+  task :execute => :upload do
+    on roles(:all) do
+      execute :sudo, "bash", "#{Scaler::Settings.internal.remote_tmp_dir}/bootstrap-ubuntu.sh"
+    end
+  end
+
+  desc "Upload and execute bootstrap script"
+  task default: [:execute] do
+  end
+
+  before 'deploy:starting', 'bootstrap:default'
+end

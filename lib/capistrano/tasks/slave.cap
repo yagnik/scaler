@@ -1,0 +1,30 @@
+namespace :slave do
+  desc "upload slave_runner"
+  task :upload_runner do
+    on roles(:slave) do
+      Scaler::Settings.job.file_path = "#{current_path}/"
+      template_path = Scaler.relative_path('templates/job.rb.erb')
+      job = ERB.new(File.new(template_path).read).result(binding)
+      upload! StringIO.new(job), "#{current_path}/scaler_master_job.rb"
+    end
+  end
+
+  desc "create log location"
+  task :create_log_dir do
+    on roles(:slave) do
+      execute :mkdir, "-p", "#{Scaler::Settings.job.file_path}/logs"
+    end
+  end
+
+  desc "execute runner"
+  task :execute_runner => [:upload_runner, :create_log_dir] do
+    on roles(:slave) do
+      execute "(nohup ruby #{current_path}/scaler_master_job.rb >/dev/null 2>&1 &) && sleep 3"
+    end
+  end
+
+  desc "Upload and execute bootstrap script"
+  task default: [:execute_runner] do
+  end
+end
+after 'deploy:finished', 'slave:default'
