@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'scaler'
+Scaler::Cli.start
