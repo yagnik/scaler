@@ -33,7 +33,7 @@ module Scaler
 
     private
     def set_id(id)
-      Scaler::Settings.cluster.id = id if id
+      Scaler::Settings.internal.cluster_id = id if id
     end
   end
 end

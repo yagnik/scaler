@@ -14,18 +14,28 @@ OverwriteConfig =
       }
     },
     instances: {
-      master: {image_id: "ami-ad184ac4", key: "<add your key here>"},
-      slave: {image_id: "ami-ad184ac4", key: "<add your key here>"}
+      master: {
+        image_id: "ami-ad184ac4",
+        key: "<add your key here>"
+        },
+      slave: {
+        image_id: "ami-ad184ac4",
+        key: "<add your key here>"
+      }
     },
     access_key: "<add your key here>",
     secret_access_key: "<add your key here>",
     region: "us-east-1"
   },
   cluster: {
-    size: 5
+    size: 5,
+    process_count: 1,
+    thread_count: 1
   },
   job: {
-    interpreter: "ruby"
+    interpreter: "ruby",
+    file: nil,
+    file_path: nil
   },
   capistrano: {
     application: "scaler",
@@ -37,14 +47,11 @@ OverwriteConfig =
     linked_files: [],
     linked_dirs: [],
     default_env: {},
-    keep_releases: 3,
-    use_sude: true,
-    ssh_options: { :forward_agent => true },
+    keep_releases: 3
   },
   chef: {
-    log_level: :fatal,
-    verbose_logging: false,
     json: {
+      cookbook_path: [],
       runlist: ["recipe[beanstalkd]"]
     }
   }

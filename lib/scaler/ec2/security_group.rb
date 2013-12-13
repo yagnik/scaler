@@ -1,6 +1,8 @@
 module Scaler
   module Ec2
     class SecurityGroup
+      include Taggable
+
       attr_reader :master, :slave
       Rule = Struct.new(:key, :type, :port)
 
@@ -20,24 +22,11 @@ module Scaler
         return instance.nil? ? create(ec2, cluster_id, type) : instance
       end
 
-      def find(ec2, id, type)
-        ec2.security_groups
-          .tagged("scaler_type")
-          .tagged_values(type)
-          .tagged("scaler_id")
-          .tagged_values(id).first
-      end
-
       def create(ec2, cluster_id, type)
         group = ec2.security_groups.create("scaler:#{type}:#{cluster_id}")
-        tag(group, type, cluster_id)
+        tag(group, cluster_id, type)
         authorize_ingress(group, rules(type))
         return group
-      end
-
-      def tag(security_group, type, id)
-        security_group.tags["scaler_type"] = type
-        security_group.tags["scaler_id"] = id
       end
 
       def rules(type)

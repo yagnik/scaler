@@ -42,7 +42,7 @@ module Scaler
       set :ssh_options, { forward_agent: true }
       role :master, [cluster.master.url]
       role :slave, cluster.slaves.map { |slave| slave.url }
-      Scaler::Settings.cluster.master_url = cluster.master.url
+      Scaler::Settings.internal.master_url = cluster.master.url
       # role :master, %w{ec2-54-205-33-107.compute-1.amazonaws.com}
       # role :slave, %w{ec2-50-17-69-165.compute-1.amazonaws.com}
     end

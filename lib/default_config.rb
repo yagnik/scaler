@@ -11,10 +11,6 @@ DefaultConfig =
         ingress: {
           ssh: {type: "tcp", port: 22}
         }
-      },
-      tag: {
-        key: "",
-        value: ""
       }
     },
     instances: {
@@ -27,8 +23,6 @@ DefaultConfig =
   },
   cluster: {
     size: 5,
-    master_url: nil,
-    id: nil,
     process_count: 2,
     thread_count: 2
   },
@@ -40,10 +34,12 @@ DefaultConfig =
   capistrano: {
     application: "scaler",
     repo_url: nil,
-    deploy_to: "/var/www/scaler",
+    deploy_to: "/Home/ubuntu/scaler",
     format: :pretty,
     log_level: :debug,
-    stage: :scaler
+    stage: :scaler,
+    ssh_options: { :forward_agent => true },
+    use_sudo: true
   },
   chef: {
     cookbook_path: [],
@@ -56,7 +52,11 @@ DefaultConfig =
   internal: {
     local_tmp_dir: "/tmp",
     remote_tmp_dir: "/tmp/scaler",
-    log_location: "/tmp/scaler/log"
+    log_location: "/tmp/scaler/log",
+    type_tag: "scaler_type",
+    id_tag: "scaler_id",
+    master_url: nil,
+    id: nil
   }
 }
 
